@@ -32,7 +32,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-machine-dark">
+    <div className="w-full h-full flex flex-col bg-machine-dark">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-machine-mid border-b border-machine-light/20">
         <div className="flex items-center gap-3">
@@ -58,14 +58,14 @@ export default function App() {
 
       {/* Main Content */}
       {view === 'operator' ? (
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden min-h-0">
           {/* Left Panel: KPIs */}
           <aside className="w-72 p-3 border-r border-machine-light/20 overflow-hidden">
             <KPIDashboard kpis={kpis} />
           </aside>
 
           {/* Center: 3D Model */}
-          <main className="flex-1 relative p-3">
+          <main className="flex-1 relative p-3 min-h-0">
             <MachineModel params={machineState} kpis={kpis} onSensorClick={setSelectedSensor} />
             {selectedSensor && <SensorOverlay sensor={selectedSensor} onClose={() => setSelectedSensor(null)} />}
             {/* Status bar */}

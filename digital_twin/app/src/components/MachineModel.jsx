@@ -167,15 +167,20 @@ function Scene({ params, kpis, onSensorClick }) {
 
 export default function MachineModel({ params, kpis, onSensorClick }) {
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '400px', position: 'relative' }} className="rounded-lg overflow-hidden border border-machine-light/20">
+    <div className="rounded-lg overflow-hidden border border-machine-light/20" style={{ width: '100%', height: '100%', minHeight: '400px', position: 'relative' }}>
       <Canvas
         camera={{ position: [5, 4, 6], fov: 50 }}
         shadows
-        resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
-        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-        gl={{ antialias: true, powerPreference: 'default', preserveDrawingBuffer: true }}
-        onCreated={({ gl }) => { gl.setClearColor('#1a1a2e') }}
-        fallback={<div style={{ color: 'white', padding: '2rem' }}>WebGL not supported in this browser</div>}
+        resize={{ scroll: false, debounce: { scroll: 50, resize: 0 }, offsetSize: true }}
+        style={{ position: 'absolute', inset: 0 }}
+        gl={{ antialias: true, preserveDrawingBuffer: true }}
+        onCreated={({ gl, size }) => {
+          gl.setClearColor('#1a1a2e')
+          if (size.width === 0 || size.height === 0) {
+            gl.setSize(window.innerWidth * 0.5, window.innerHeight * 0.8)
+          }
+        }}
+        fallback={<div style={{ color: 'white', padding: '2rem' }}>WebGL not supported</div>}
       >
         <Suspense fallback={null}>
           <Scene params={params} kpis={kpis} onSensorClick={onSensorClick} />
