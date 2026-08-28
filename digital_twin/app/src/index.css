@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, sans-serif; }
+
+.gauge-ring {
+  stroke-dasharray: 283;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+.kpi-card {
+  @apply bg-machine-mid border border-machine-light/30 rounded-lg p-3 backdrop-blur-sm;
+}
+
+.param-slider::-webkit-slider-thumb {
+  @apply appearance-none w-4 h-4 rounded-full bg-machine-accent cursor-pointer;
+}
+
+.nav-tab {
+  @apply px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer;
+}
+.nav-tab.active {
+  @apply bg-machine-mid text-white border-b-2 border-machine-accent;
+}
+.nav-tab:not(.active) {
+  @apply text-gray-400 hover:text-gray-200;
+}
