@@ -3,9 +3,12 @@
 -- Run after the data is seeded (01→02→03) and the Docker
 -- image has been pushed to the Snowflake image registry.
 -- ============================================================
+CREATE DATABASE CERES_DIGITAL_TWIN;
+CREATE SCHEMA DIGITAL_TWIN_ANALYTICS;
 
-USE DATABASE CERES_TRADE_PROMO;
-USE SCHEMA TRADE_ANALYTICS;
+
+USE DATABASE CERES_DIGITAL_TWIN;
+USE SCHEMA DIGITAL_TWIN_ANALYTICS;
 USE WAREHOUSE COMPUTE_WH;
 
 -- ============================================================
@@ -21,15 +24,15 @@ SHOW IMAGE REPOSITORIES LIKE 'IMAGE_REPO';
 --docker login nynkybm-ij81701.registry.snowflakecomputing.com -u RINNOBAGUS
 -- ensure your docker desktop service is active before build image
 -- docker build -t "repository_url" at local
---docker build -t nynkybm-ij81701.registry.snowflakecomputing.com/ceres_trade_promo/trade_analytics/image_repo/retail_ceres:latest .
+--docker build -t nynkybm-ij81701.registry.snowflakecomputing.com/ceres_digital_twin/digital_twin_analytics/image_repo/digital_twin_ceres:latest .
 -- docker push "repository_url" at local
---docker push nynkybm-ij81701.registry.snowflakecomputing.com/ceres_trade_promo/trade_analytics/image_repo/retail_ceres:latest
+--docker push nynkybm-ij81701.registry.snowflakecomputing.com/ceres_digital_twin/digital_twin_analytics/image_repo/digital_twin_ceres:latest
 
 
 -- ============================================================
 -- 2. Compute Pool
 -- ============================================================
-CREATE COMPUTE POOL IF NOT EXISTS TRADE_PROMO_POOL
+CREATE COMPUTE POOL IF NOT EXISTS DIGITAL_TWIN_POOL
   MIN_NODES = 1
   MAX_NODES = 1
   INSTANCE_FAMILY = CPU_X64_XS
@@ -37,26 +40,26 @@ CREATE COMPUTE POOL IF NOT EXISTS TRADE_PROMO_POOL
   AUTO_SUSPEND_SECS = 300;
 
 -- Wait until the pool is ACTIVE before creating the service:
-DESCRIBE COMPUTE POOL TRADE_PROMO_POOL;
+DESCRIBE COMPUTE POOL DIGITAL_TWIN_POOL;
 
 -- ============================================================
 -- 3. Create the Service
 --    This uses an inline specification. Make sure the Docker
 --    image has been pushed to IMAGE_REPO first.
 -- ============================================================
-DROP SERVICE IF EXISTS TRADE_PROMO_APP;
+DROP SERVICE IF EXISTS DIGITAL_TWIN_APP;
 
-CREATE SERVICE TRADE_PROMO_APP
-  IN COMPUTE POOL TRADE_PROMO_POOL
+CREATE SERVICE DIGITAL_TWIN_APP
+  IN COMPUTE POOL DIGITAL_TWIN_POOL
   FROM SPECIFICATION $$
 spec:
   containers:
-    - name: ceres-trade-promo
-      image: /CERES_TRADE_PROMO/TRADE_ANALYTICS/IMAGE_REPO/retail_ceres:latest
+    - name: unisign-digital-twin
+      image: /CERES_DIGITAL_TWIN/DIGITAL_TWIN_ANALYTICS/IMAGE_REPO/digital_twin_ceres:latest
       env:
         SNOWFLAKE_WAREHOUSE: COMPUTE_WH
-        SNOWFLAKE_DATABASE: CERES_TRADE_PROMO
-        SNOWFLAKE_SCHEMA: TRADE_ANALYTICS
+        SNOWFLAKE_DATABASE: CERES_DIGITAL_TWIN
+        SNOWFLAKE_SCHEMA: DIGITAL_TWIN_ANALYTICS
       resources:
         requests:
           cpu: 0.5
@@ -78,15 +81,15 @@ $$
 -- ============================================================
 
 -- Check the container is READY:
-SELECT SYSTEM$GET_SERVICE_STATUS('TRADE_PROMO_APP');
+SELECT SYSTEM$GET_SERVICE_STATUS('DIGITAL_TWIN_APP');
 
 -- Get the public endpoint URL (may take 1-2 minutes to provision):
-SHOW ENDPOINTS IN SERVICE TRADE_PROMO_APP;
+SHOW ENDPOINTS IN SERVICE DIGITAL_TWIN_APP;
 
 -- ============================================================
 -- Useful management commands
 -- ============================================================
--- View logs:        SELECT SYSTEM$GET_SERVICE_LOGS('TRADE_PROMO_APP', 0, 'ceres-trade-promo', 100);
+-- View logs:        SELECT SYSTEM$GET_SERVICE_LOGS('DIGITAL_TWIN_APP', 0, 'unisign-digital-twin', 100);
 -- Suspend service:  ALTER SERVICE TRADE_PROMO_APP SUSPEND;
 -- Resume service:   ALTER SERVICE TRADE_PROMO_APP RESUME;
 -- Drop service:     DROP SERVICE TRADE_PROMO_APP;

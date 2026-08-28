@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react'
+import React, { useRef, useMemo, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, Text, Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -167,9 +167,19 @@ function Scene({ params, kpis, onSensorClick }) {
 
 export default function MachineModel({ params, kpis, onSensorClick }) {
   return (
-    <div className="w-full h-full rounded-lg overflow-hidden border border-machine-light/20">
-      <Canvas camera={{ position: [5, 4, 6], fov: 50 }} shadows>
-        <Scene params={params} kpis={kpis} onSensorClick={onSensorClick} />
+    <div style={{ width: '100%', height: '100%', minHeight: '400px', position: 'relative' }} className="rounded-lg overflow-hidden border border-machine-light/20">
+      <Canvas
+        camera={{ position: [5, 4, 6], fov: 50 }}
+        shadows
+        resize={{ scroll: false, debounce: { scroll: 50, resize: 0 } }}
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+        gl={{ antialias: true, powerPreference: 'default', preserveDrawingBuffer: true }}
+        onCreated={({ gl }) => { gl.setClearColor('#1a1a2e') }}
+        fallback={<div style={{ color: 'white', padding: '2rem' }}>WebGL not supported in this browser</div>}
+      >
+        <Suspense fallback={null}>
+          <Scene params={params} kpis={kpis} onSensorClick={onSensorClick} />
+        </Suspense>
       </Canvas>
     </div>
   )
