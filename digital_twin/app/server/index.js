@@ -6,21 +6,55 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 
+function isRunningOnSPCS() {
+  return fs.existsSync('/snowflake/session/token');
+}
+
 function getConnection() {
-  const tokenPath = '/snowflake/session/token';
-  const token = fs.readFileSync(tokenPath, 'utf-8').trim();
+  const database = process.env.SNOWFLAKE_DATABASE || 'CERES_DIGITAL_TWIN';
+  const schema = process.env.SNOWFLAKE_SCHEMA || 'DIGITAL_TWIN_ANALYTICS';
+  const warehouse = process.env.SNOWFLAKE_WAREHOUSE || 'COMPUTE_WH';
 
-  const host = process.env.SNOWFLAKE_HOST || '';
+  if (isRunningOnSPCS()) {
+    // --- SPCS: OAuth token auth ---
+    const token = fs.readFileSync('/snowflake/session/token', 'utf-8').trim();
+    const host = process.env.SNOWFLAKE_HOST || '';
+    return snowflake.createConnection({
+      accessUrl: `https://${host}`,
+      account: process.env.SNOWFLAKE_ACCOUNT || host.split('.')[0] || '',
+      authenticator: 'OAUTH',
+      token: token,
+      warehouse, database, schema,
+    });
+  }
 
-  return snowflake.createConnection({
-    accessUrl: `https://${host}`,
-    account: process.env.SNOWFLAKE_ACCOUNT || host.split('.')[0] || '',
-    authenticator: 'OAUTH',
-    token: token,
-    warehouse: process.env.SNOWFLAKE_WAREHOUSE || 'COMPUTE_WH',
-    database: process.env.SNOWFLAKE_DATABASE || 'CERES_DIGITAL_TWIN',
-    schema: process.env.SNOWFLAKE_SCHEMA || 'DIGITAL_TWIN_ANALYTICS',
-  });
+  // --- Local: username/password or key-pair auth ---
+  const account = process.env.SNOWFLAKE_ACCOUNT;
+  if (!account) {
+    throw new Error('SNOWFLAKE_ACCOUNT env var is required for local mode');
+  }
+
+  const connOpts = { account, warehouse, database, schema };
+
+  if (process.env.SNOWFLAKE_PRIVATE_KEY_PATH) {
+    // Key-pair authentication
+    connOpts.username = process.env.SNOWFLAKE_USER;
+    connOpts.authenticator = 'SNOWFLAKE_JWT';
+    connOpts.privateKeyPath = process.env.SNOWFLAKE_PRIVATE_KEY_PATH;
+    if (process.env.SNOWFLAKE_PRIVATE_KEY_PASS) {
+      connOpts.privateKeyPass = process.env.SNOWFLAKE_PRIVATE_KEY_PASS;
+    }
+  } else {
+    // Username/password authentication
+    connOpts.username = process.env.SNOWFLAKE_USER;
+    connOpts.password = process.env.SNOWFLAKE_PASSWORD;
+  }
+
+  if (process.env.SNOWFLAKE_ROLE) {
+    connOpts.role = process.env.SNOWFLAKE_ROLE;
+  }
+
+  return snowflake.createConnection(connOpts);
 }
 
 function queryAsync(conn, sql) {
