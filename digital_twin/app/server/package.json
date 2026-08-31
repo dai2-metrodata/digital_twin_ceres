@@ -1,0 +1,9 @@
+{
+  "name": "digital-twin-api",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "express": "^4.21.0",
+    "snowflake-sdk": "^1.14.0"
+  }
+}

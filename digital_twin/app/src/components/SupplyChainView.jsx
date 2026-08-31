@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react'
-import { SUPPLY_CHAIN_DEFAULTS } from '../data/defaults'
 
-function InventoryBar({ item, onAdjust }) {
+function InventoryBar({ item }) {
   const pct = (item.stock / (item.reorderPoint * 4)) * 100
   const color = item.stock <= item.reorderPoint ? '#e74c3c' : item.stock <= item.reorderPoint * 1.5 ? '#f39c12' : '#27ae60'
   return (
@@ -19,11 +18,10 @@ function InventoryBar({ item, onAdjust }) {
   )
 }
 
-function TransportSimulator({ type, delays, onDelayChange }) {
-  const modes = SUPPLY_CHAIN_DEFAULTS.transportModes
+function TransportSimulator({ type, delays, onDelayChange, transportModes }) {
   return (
     <div className="space-y-2">
-      {modes.map(mode => (
+      {transportModes.map(mode => (
         <div key={mode.id} className="flex items-center gap-2">
           <span className="text-xs text-gray-400 w-14">{mode.name}</span>
           <input type="range" className="flex-1 h-1 bg-machine-dark rounded-full appearance-none cursor-pointer param-slider"
@@ -36,7 +34,7 @@ function TransportSimulator({ type, delays, onDelayChange }) {
   )
 }
 
-function WorkOrderTimeline({ orders, dayOffset }) {
+function WorkOrderTimeline({ orders }) {
   return (
     <div className="space-y-1 max-h-40 overflow-y-auto">
       {orders.map((order, i) => (
@@ -80,19 +78,18 @@ function RiskPanel({ risks }) {
   )
 }
 
-export default function SupplyChainView() {
-  const [dailyDemand, setDailyDemand] = useState(12)
+export default function SupplyChainView({ supplyChainDefaults }) {
+  const [dailyDemand, setDailyDemand] = useState(supplyChainDefaults.dailyOrders.average || 12)
   const [simulationDays, setSimulationDays] = useState(14)
   const [inboundDelays, setInboundDelays] = useState({ truck: 0, train: 0 })
   const [outboundDelays, setOutboundDelays] = useState({ truck: 0, train: 0 })
   const [geoRisk, setGeoRisk] = useState(0)
-  const [inventory, setInventory] = useState(SUPPLY_CHAIN_DEFAULTS.rawMaterials)
   const [simResults, setSimResults] = useState(null)
 
   const runSimulation = () => {
-    let stock = SUPPLY_CHAIN_DEFAULTS.rawMaterials[0].stock
-    const warehouseCapacity = SUPPLY_CHAIN_DEFAULTS.warehouse.capacity
-    let warehouseStock = SUPPLY_CHAIN_DEFAULTS.warehouse.currentStock
+    let stock = supplyChainDefaults.rawMaterials[0].stock
+    const warehouseCapacity = supplyChainDefaults.warehouse.capacity
+    let warehouseStock = supplyChainDefaults.warehouse.currentStock
     const orders = []
     const risks = []
     let stockouts = 0
@@ -133,7 +130,6 @@ export default function SupplyChainView() {
   return (
     <div className="h-full overflow-y-auto space-y-3 p-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Simulation Controls */}
         <div className="kpi-card">
           <h3 className="text-xs font-bold text-machine-accent mb-3 uppercase tracking-wider">Simulation Parameters</h3>
           <div className="space-y-3">
@@ -143,7 +139,7 @@ export default function SupplyChainView() {
                 <span className="font-mono text-white">{dailyDemand} rails/day</span>
               </div>
               <input type="range" className="w-full h-1.5 bg-machine-dark rounded-full appearance-none cursor-pointer param-slider"
-                min={5} max={25} value={dailyDemand} onChange={(e) => setDailyDemand(parseInt(e.target.value))} />
+                min={supplyChainDefaults.dailyOrders.min || 5} max={supplyChainDefaults.dailyOrders.max || 25} value={dailyDemand} onChange={(e) => setDailyDemand(parseInt(e.target.value))} />
             </div>
             <div>
               <div className="flex justify-between text-xs mb-1">
@@ -164,40 +160,35 @@ export default function SupplyChainView() {
           </div>
         </div>
 
-        {/* Inventory Status */}
         <div className="kpi-card">
           <h3 className="text-xs font-bold text-machine-accent mb-3 uppercase tracking-wider">Raw Material Inventory</h3>
-          {SUPPLY_CHAIN_DEFAULTS.rawMaterials.map(item => <InventoryBar key={item.id} item={item} />)}
+          {supplyChainDefaults.rawMaterials.map(item => <InventoryBar key={item.id} item={item} />)}
           <div className="mt-2 pt-2 border-t border-machine-light/20">
             <div className="flex justify-between text-xs">
               <span className="text-gray-400">Warehouse Utilization</span>
-              <span className="font-mono text-blue-400">{SUPPLY_CHAIN_DEFAULTS.warehouse.currentStock}/{SUPPLY_CHAIN_DEFAULTS.warehouse.capacity} rails</span>
+              <span className="font-mono text-blue-400">{supplyChainDefaults.warehouse.currentStock}/{supplyChainDefaults.warehouse.capacity} rails</span>
             </div>
           </div>
         </div>
 
-        {/* Inbound Transport */}
         <div className="kpi-card">
           <h3 className="text-xs font-bold text-machine-accent mb-3 uppercase tracking-wider">Inbound Transport (Raw Materials)</h3>
-          <TransportSimulator type="inbound" delays={inboundDelays}
+          <TransportSimulator type="inbound" delays={inboundDelays} transportModes={supplyChainDefaults.transportModes}
             onDelayChange={(mode, val) => setInboundDelays(prev => ({ ...prev, [mode]: val }))} />
         </div>
 
-        {/* Outbound Transport */}
         <div className="kpi-card">
           <h3 className="text-xs font-bold text-machine-accent mb-3 uppercase tracking-wider">Outbound Transport (Finished Goods)</h3>
-          <TransportSimulator type="outbound" delays={outboundDelays}
+          <TransportSimulator type="outbound" delays={outboundDelays} transportModes={supplyChainDefaults.transportModes}
             onDelayChange={(mode, val) => setOutboundDelays(prev => ({ ...prev, [mode]: val }))} />
         </div>
       </div>
 
-      {/* Run Simulation Button */}
       <button onClick={runSimulation}
         className="w-full bg-machine-accent hover:bg-red-600 text-white font-medium py-3 rounded-lg transition-colors text-sm">
         Run Supply Chain Simulation ({simulationDays} Days)
       </button>
 
-      {/* Results */}
       {simResults && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="kpi-card">

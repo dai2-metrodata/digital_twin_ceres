@@ -2,7 +2,7 @@ import React, { useRef, useMemo, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, Text, Html } from '@react-three/drei'
 import * as THREE from 'three'
-import { SENSORS } from '../data/defaults'
+
 
 function Rail({ position, length, color = '#4a90d9' }) {
   return (
@@ -135,7 +135,7 @@ function ToolChanger({ position }) {
   )
 }
 
-function Scene({ params, kpis, onSensorClick }) {
+function Scene({ params, kpis, onSensorClick, sensors }) {
   const feedProgress = useMemo(() => Math.min(1, (kpis?.performance || 85) / 100), [kpis])
   return (
     <>
@@ -155,7 +155,7 @@ function Scene({ params, kpis, onSensorClick }) {
       <Workpiece railLength={params.railLength} feedProgress={feedProgress} />
       <ToolChanger position={[-3, 2.5, -1]} />
 
-      {SENSORS.map(s => (
+      {sensors.map(s => (
         <SensorPoint key={s.id} sensor={s} onClick={onSensorClick} />
       ))}
 
@@ -165,7 +165,7 @@ function Scene({ params, kpis, onSensorClick }) {
   )
 }
 
-export default function MachineModel({ params, kpis, onSensorClick }) {
+export default function MachineModel({ params, kpis, onSensorClick, sensors }) {
   return (
     <div className="rounded-lg overflow-hidden border border-machine-light/20" style={{ width: '100%', height: '100%', minHeight: '400px', position: 'relative' }}>
       <Canvas
@@ -183,7 +183,7 @@ export default function MachineModel({ params, kpis, onSensorClick }) {
         fallback={<div style={{ color: 'white', padding: '2rem' }}>WebGL not supported</div>}
       >
         <Suspense fallback={null}>
-          <Scene params={params} kpis={kpis} onSensorClick={onSensorClick} />
+          <Scene params={params} kpis={kpis} onSensorClick={onSensorClick} sensors={sensors} />
         </Suspense>
       </Canvas>
     </div>

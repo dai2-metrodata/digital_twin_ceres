@@ -1,8 +1,6 @@
 import React, { useState } from 'react'
-import { PROCESS_PARAMS, MATERIALS } from '../data/defaults'
 
-function Slider({ param, value, onChange }) {
-  const config = PROCESS_PARAMS[param]
+function Slider({ param, value, onChange, config }) {
   const isLog = config.max / config.min > 100
   const displayValue = typeof value === 'number' ? (value >= 100 ? value.toFixed(0) : value.toFixed(2)) : value
 
@@ -19,13 +17,13 @@ function Slider({ param, value, onChange }) {
   )
 }
 
-export default function ProcessControls({ params, onParamChange, onSimulate }) {
+export default function ProcessControls({ params, onParamChange, onSimulate, processParams, materials }) {
   const [material, setMaterial] = useState('mild_steel')
   const [targetQuality, setTargetQuality] = useState(99)
   const [scenario, setScenario] = useState(null)
 
   const runWhatIf = () => {
-    const mat = MATERIALS.find(m => m.id === material)
+    const mat = materials.find(m => m.id === material)
     const adjustedSpeed = params.cuttingSpeed * mat.cuttingSpeedFactor
     const adjustedFeed = params.feedRate * mat.feedFactor
     const cycleTime = (params.railLength * 304.8) / adjustedFeed
@@ -47,22 +45,20 @@ export default function ProcessControls({ params, onParamChange, onSimulate }) {
 
   return (
     <div className="h-full overflow-y-auto space-y-3 pr-1">
-      {/* Process Parameters */}
       <div className="kpi-card">
         <h3 className="text-xs font-bold text-machine-accent mb-3 uppercase tracking-wider">Process Parameters</h3>
-        {Object.keys(PROCESS_PARAMS).map(key => (
-          <Slider key={key} param={key} value={params[key]} onChange={onParamChange} />
+        {Object.keys(processParams).map(key => (
+          <Slider key={key} param={key} value={params[key]} onChange={onParamChange} config={processParams[key]} />
         ))}
       </div>
 
-      {/* Material Selection */}
       <div className="kpi-card">
         <h3 className="text-xs font-bold text-machine-accent mb-2 uppercase tracking-wider">Material & Quality Target</h3>
         <div className="mb-3">
           <label className="text-xs text-gray-400 block mb-1">Material</label>
           <select value={material} onChange={(e) => setMaterial(e.target.value)}
             className="w-full bg-machine-dark border border-machine-light/30 rounded px-2 py-1.5 text-sm text-white">
-            {MATERIALS.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            {materials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </div>
         <div className="mb-3">
@@ -79,7 +75,6 @@ export default function ProcessControls({ params, onParamChange, onSimulate }) {
         </button>
       </div>
 
-      {/* Scenario Results */}
       {scenario && (
         <div className={`kpi-card border ${scenario.meetsTarget ? 'border-green-500/50' : 'border-red-500/50'}`}>
           <h3 className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: scenario.meetsTarget ? '#27ae60' : '#e74c3c' }}>
