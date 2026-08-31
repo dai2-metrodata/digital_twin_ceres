@@ -1,5 +1,4 @@
 import React from 'react'
-import { KPI_THRESHOLDS } from '../data/defaults'
 
 function GaugeCircle({ value, max = 100, label, unit = '%', size = 80 }) {
   const pct = Math.min(100, (value / max) * 100)
@@ -42,7 +41,7 @@ function MetricBar({ label, value, max, unit, thresholds }) {
   )
 }
 
-export default function KPIDashboard({ kpis }) {
+export default function KPIDashboard({ kpis, kpiThresholds }) {
   return (
     <div className="h-full overflow-y-auto space-y-3 pr-1">
       {/* OEE Section */}
@@ -59,9 +58,9 @@ export default function KPIDashboard({ kpis }) {
       {/* Mechanical KPIs */}
       <div className="kpi-card">
         <h3 className="text-xs font-bold text-machine-accent mb-2 uppercase tracking-wider">Dual-Rail Mechanical</h3>
-        <MetricBar label="Rail Accuracy" value={kpis.railAccuracy} max={0.1} unit="mm" thresholds={{ good: 0.01, warning: 0.05 }} />
-        <MetricBar label="Vibration (RMS)" value={kpis.vibration} max={10} unit="mm/s" thresholds={{ good: 2.5, warning: 5 }} />
-        <MetricBar label="Axis Position Error" value={kpis.axisError} max={0.05} unit="mm" thresholds={{ good: 0.005, warning: 0.02 }} />
+        <MetricBar label="Rail Accuracy" value={kpis.railAccuracy} max={0.1} unit="mm" thresholds={kpiThresholds.railAccuracy} />
+        <MetricBar label="Vibration (RMS)" value={kpis.vibration} max={10} unit="mm/s" thresholds={kpiThresholds.vibration} />
+        <MetricBar label="Axis Position Error" value={kpis.axisError} max={0.05} unit="mm" thresholds={kpiThresholds.axisError} />
       </div>
 
       {/* Tooling & Maintenance */}

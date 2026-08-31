@@ -41,13 +41,30 @@ export default function App() {
     setParams(prev => ({ ...prev, [key]: value }))
   }, [])
 
+  if (error && !config) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-machine-dark">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-400 text-2xl">!</span>
+          </div>
+          <p className="text-red-400 text-sm font-medium">Failed to load configuration</p>
+          <p className="text-gray-500 text-xs mt-2">{error}</p>
+          <button onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-machine-accent hover:bg-red-600 text-white text-xs rounded transition-colors">
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (loading || !params || !kpis) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-machine-dark">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-machine-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-400 text-sm">Loading configuration from Snowflake...</p>
-          {error && <p className="text-yellow-400 text-xs mt-2">Using fallback data: {error}</p>}
         </div>
       </div>
     )
@@ -80,7 +97,7 @@ export default function App() {
       {view === 'operator' ? (
         <div className="flex-1 flex overflow-hidden min-h-0">
           <aside className="w-72 p-3 border-r border-machine-light/20 overflow-hidden">
-            <KPIDashboard kpis={kpis} />
+            <KPIDashboard kpis={kpis} kpiThresholds={config.kpiThresholds} />
           </aside>
           <main className="flex-1 relative p-3 min-h-0">
             <MachineModel params={machineState} kpis={kpis} onSensorClick={setSelectedSensor} sensors={config.sensors} />

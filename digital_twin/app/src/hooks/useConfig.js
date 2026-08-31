@@ -1,13 +1,4 @@
 import { useState, useEffect } from 'react'
-import * as defaults from '../data/defaults'
-
-const FALLBACK_CONFIG = {
-  processParams: defaults.PROCESS_PARAMS,
-  kpiThresholds: defaults.KPI_THRESHOLDS,
-  materials: defaults.MATERIALS,
-  sensors: defaults.SENSORS,
-  supplyChainDefaults: defaults.SUPPLY_CHAIN_DEFAULTS,
-}
 
 export default function useConfig() {
   const [config, setConfig] = useState(null)
@@ -25,8 +16,7 @@ export default function useConfig() {
         setLoading(false)
       })
       .catch(err => {
-        console.warn('Failed to fetch config from API, using fallback:', err.message)
-        setConfig(FALLBACK_CONFIG)
+        console.error('Failed to fetch config from API:', err.message)
         setError(err.message)
         setLoading(false)
       })
