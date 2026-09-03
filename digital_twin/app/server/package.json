@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^4.21.0",
     "snowflake-sdk": "^1.14.0"
   }
