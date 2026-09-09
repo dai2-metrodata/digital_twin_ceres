@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const snowflake = require('snowflake-sdk');
 const fs = require('fs');

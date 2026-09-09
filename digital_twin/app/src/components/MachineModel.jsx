@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Text, Html } from '@react-three/drei'
+import { OrbitControls, Html } from '@react-three/drei'
 import * as THREE from 'three'
 
 
@@ -57,11 +57,31 @@ function Indexer({ rotation }) {
     <group position={[3.5, 0.5, 0]}>
       <mesh rotation={[0, 0, (rotation * Math.PI) / 180]}>
         <cylinderGeometry args={[0.6, 0.6, 0.4, 32]} />
-        <meshStandardMaterial color="#f39c12" metalness={0.6} roughness={0.3} />
+        <meshStandardMaterial
+          color="#f39c12"
+          metalness={0.6}
+          roughness={0.3}
+        />
       </mesh>
-      <Text position={[0, 0.4, 0]} fontSize={0.15} color="white" anchorX="center">
-        {rotation}°
-      </Text>
+
+      <Html
+        position={[0, 0.4, 0]}
+        center
+        zIndexRange={[1, 0]}
+        style={{ pointerEvents: 'none' }}
+      >
+        <span
+          style={{
+            color: 'white',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '14px',
+            whiteSpace: 'nowrap',
+            userSelect: 'none',
+          }}
+        >
+          {rotation}°
+        </span>
+      </Html>
     </group>
   )
 }
