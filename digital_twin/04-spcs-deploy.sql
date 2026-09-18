@@ -144,6 +144,8 @@ INSERT INTO DAILY_ORDERS
 -- ============================================================
 CREATE IMAGE REPOSITORY IF NOT EXISTS IMAGE_REPO;
 
+SHOW SERVICES IN SCHEMA CERES_DIGITAL_TWIN.DIGITAL_TWIN_ANALYTICS;
+
 -- Show the repository URL — you'll need it for `docker tag` / `docker push`.
 SHOW IMAGE REPOSITORIES LIKE 'IMAGE_REPO';
 -- docker login <repository_url> -u <username>
@@ -194,6 +196,31 @@ $$
   MIN_INSTANCES = 1
   MAX_INSTANCES = 1;
 
+
+ALTER SERVICE DIGITAL_TWIN_APP
+  FROM SPECIFICATION $$
+spec:
+  containers:
+    - name: unisign-digital-twin
+      image: /CERES_DIGITAL_TWIN/DIGITAL_TWIN_ANALYTICS/IMAGE_REPO/digital_twin_ceres:20260916
+      env:
+        SNOWFLAKE_WAREHOUSE: COMPUTE_WH
+        SNOWFLAKE_DATABASE: CERES_DIGITAL_TWIN
+        SNOWFLAKE_SCHEMA: DIGITAL_TWIN_ANALYTICS
+      resources:
+        requests:
+          cpu: 0.5
+          memory: 1Gi
+        limits:
+          cpu: 2
+          memory: 4Gi
+  endpoints:
+    - name: app
+      port: 8000
+      public: true
+$$
+
+
 -- ============================================================
 -- 6. Verify
 -- ============================================================
@@ -208,3 +235,4 @@ SHOW ENDPOINTS IN SERVICE DIGITAL_TWIN_APP;
 -- Resume service:   ALTER SERVICE DIGITAL_TWIN_APP RESUME;
 -- Drop service:     DROP SERVICE DIGITAL_TWIN_APP;
 -- Drop pool:        DROP COMPUTE POOL DIGITAL_TWIN_POOL;
+
